@@ -20,5 +20,4 @@ class Generator:
         pencil = ImageDraw.Draw(image)
         pencil.text(((self.width - sx) / 2, (self.height - sy) / 2),
                     font=font, fill='black', size=36, text=message, align='center')
-
         return image
