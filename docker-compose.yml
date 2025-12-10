@@ -1,7 +1,7 @@
 services:
   placeholder:
+    image: ghcr.io/deeerain/placeholder_service:latest
     container_name: "placeholder-service"
-    build: .
     ports:
       - "5000:5000"
     environment:
