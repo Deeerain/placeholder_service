@@ -18,12 +18,18 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+      
+      - name: Lowercase the username using an Action
+        id: lowercase-step
+        uses: ASzc/change-string-case-action@v6
+        with:
+          string: ${{ github.repository_owner }}
 
       - name: Log in to the Container registry
         uses: docker/login-action@v3
         with:
           registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
+          username: ${{ steps.lowercase-step.outputs.lowercase }}
           password: ${{ secrets.GITHUB_TOKEN }} # Используем встроенный токен[citation:7]
 
       - name: Build and push Docker image
