@@ -1,34 +1,40 @@
-name: Create and publish a Docker image
+name: Publish Docker image
 
 on:
   push:
-    branches: ['main'] # Запускать при пуше в основную ветку
+    branches: [ 'main' ]
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }} # Имя образа = имя репозитория
 
 jobs:
-  build-and-push-image:
+  build-and-push:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      packages: write # Даем доступ на запись в Packages
+      packages: write
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Set lowercase owner and image name
+        run: |
+          echo "LOWER_OWNER=$(echo '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
+          echo "IMAGE_NAME=ghcr.io/$LOWER_OWNER/placeholder-service" >> $GITHUB_ENV
+
       - name: Log in to the Container registry
         uses: docker/login-action@v3
         with:
           registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }} # Используем встроенный токен[citation:7]
+          username: ${{ env.LOWER_OWNER }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
           context: .
           push: true
-          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+          tags: |
+            ${{ env.IMAGE_NAME }}:latest
+            ${{ env.IMAGE_NAME }}:${{ github.sha }}
