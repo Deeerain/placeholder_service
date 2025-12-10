@@ -1,0 +1,10 @@
+services:
+  placeholder:
+    container_name: "placeholder-service"
+    build: .
+    ports:
+      - "5000:5000"
+    environment:
+      - FLASK_ENV=production
+      - PYTHONUNBUFFERED=1
+    restart: unless-stopped
