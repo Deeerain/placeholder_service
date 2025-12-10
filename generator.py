@@ -21,7 +21,8 @@ class AbstractPlaceholder(object):
         w, h = self.get_size()
         return '{}x{}'.format(w, h)
 
-    def calculate_to_center(self, text_size: Tuple[int, int]) -> Tuple[int, int]:
+    def calculate_to_center(
+            self, text_size: Tuple[int, int]) -> Tuple[int, int]:
         tx, ty = text_size
         width, height = self.get_size()
 
@@ -37,7 +38,10 @@ class AbstractPlaceholder(object):
 
 
 class Placeholder(AbstractPlaceholder):
-    def __init__(self, width: int, height: int, format: Literal['jpeg', 'png']) -> None:
+    def __init__(self,
+                 width: int,
+                 height: int,
+                 format: Literal['jpeg', 'png']) -> None:
         self.placeholder_width = width
         self.placeholder_height = height
         self.placeholder_format = format
@@ -50,11 +54,13 @@ class Placeholder(AbstractPlaceholder):
         self.placeholder_image = ImageT.new(
             mode='RGB', size=self.get_size(), color='gray')
 
-        font = ImageFont.truetype('arial', size=36)
+        font = ImageFont.load_default(size=36)
+        text_size = font.getbbox(message)
+        text_position = self.calculate_to_center(
+            (text_size[2], text_size[3]))
         pencil = ImageDraw.Draw(self.placeholder_image)
-
-        pencil.text(self.calculate_to_center(font.getsize(message)), font=font,
-                    fill='black', size=36, text=message, align='center')
+        pencil.text(text_position, font=font, fill='black',
+                    size=36, text=message, align='center')
 
     def to_bytes(self) -> bytes:
         raw_image = io.BytesIO()
