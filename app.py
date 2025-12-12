@@ -1,6 +1,7 @@
 from flask import Flask
-from flask import Response
+from flask import Response, render_template_string
 from flask import make_response
+import markdown
 
 from generator import Placeholder
 
@@ -21,5 +22,7 @@ def get_placeholder(w: int, h: int, e: str) -> Response:
 
 @app.route('/')
 def index() -> Response:
-    response = make_response("Hello from Placeholder Service!")
-    return response
+    with open('./README.md', mode='r') as file:
+        md_html = markdown.markdown(file.read())
+        response = make_response(render_template_string(md_html))
+        return response
