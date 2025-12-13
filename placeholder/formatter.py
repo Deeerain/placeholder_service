@@ -1,4 +1,5 @@
 import io
+from typing import Dict
 from enum import Enum
 from abc import ABC, abstractmethod
 
@@ -31,22 +32,21 @@ class PngFormatter(AbstractImageFormater):
 
 
 class FormatterFactory:
-    def __init__(self):
-        self.jpeg_formmatter = JpegFormatter()
-        self.png_formatter = PngFormatter()
+    def __init__(self, formatters: Dict[ImageFormat, AbstractImageFormater]):
+        self.formatters = formatters
 
     def build(self, format: ImageFormat) -> AbstractImageFormater:
-        formatter: AbstractImageFormater
-
-        match format:
-            case ImageFormat.JPEG:
-                formatter = self.jpeg_formmatter
-            case ImageFormat.PNG:
-                formatter = self.png_formatter
-
-        return formatter
+        return self.formatters.get(format)
 
     def build_by_name(self, format: str) -> AbstractImageFormater:
         format = ImageFormat(format)
-
         return self.build(format)
+
+
+def get_default_formatter_factory():
+    factory = FormatterFactory({
+        ImageFormat.JPEG: JpegFormatter(),
+        ImageFormat.PNG: PngFormatter(),
+    })
+
+    return factory

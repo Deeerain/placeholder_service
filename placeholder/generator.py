@@ -40,7 +40,7 @@ class BaseGenerator(AbstractGenerator):
 class PlaceholderGenerator(BaseGenerator):
     def __init__(self, formatter: AbstractImageFormater):
         self.formatter: AbstractImageFormater = formatter
-        self.image: Image
+        self.image: ImageT
 
     def generate(
             self, width: int,

@@ -6,7 +6,7 @@ from flask import make_response
 import markdown
 
 from placeholder.generator import PlaceholderGenerator
-from placeholder.formatter import FormatterFactory
+from placeholder.formatter import get_default_formatter_factory
 
 
 app = Flask(__name__)
@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 @app.route('/<int:w>x<int:h>.<e>')
 def get_placeholder(w: int, h: int, e: str) -> Response:
     try:
-        formatter = FormatterFactory().build_by_name(e)
+        formatter = get_default_formatter_factory().build_by_name(e)
 
         placeholder = PlaceholderGenerator(formatter)
         placeholder.generate(w, h, 'gray')
