@@ -3,7 +3,7 @@ from typing import Dict
 from enum import Enum
 from abc import ABC, abstractmethod
 
-from PIL import Image
+from .generator import Placeholder
 
 
 class ImageFormat(Enum):
@@ -13,21 +13,21 @@ class ImageFormat(Enum):
 
 class AbstractImageFormater(ABC):
     @abstractmethod
-    def to_bytes(self, image: Image) -> bytes:
+    def to_bytes(self, placeaholder: Placeholder) -> bytes:
         raise NotImplementedError()
 
 
 class JpegFormatter(AbstractImageFormater):
-    def to_bytes(self, image: Image) -> bytes:
+    def to_bytes(self, placeaholder: Placeholder) -> bytes:
         raw_image = io.BytesIO()
-        image.save(raw_image, ImageFormat.JPEG.value)
+        placeaholder.image.save(raw_image, ImageFormat.JPEG.value)
         return raw_image.getvalue()
 
 
 class PngFormatter(AbstractImageFormater):
-    def to_bytes(self, image: Image) -> bytes:
+    def to_bytes(self, placeaholder: Placeholder) -> bytes:
         raw_image = io.BytesIO()
-        image.save(raw_image, ImageFormat.PNG.value)
+        placeaholder.image.save(raw_image, ImageFormat.PNG.value)
         return raw_image.getvalue()
 
 

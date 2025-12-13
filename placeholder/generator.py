@@ -1,31 +1,18 @@
-from typing import Tuple
+from typing import Tuple, Self, Callable
 from abc import ABC, abstractmethod
 
-from PIL import Image as ImageT
 from PIL import ImageDraw, ImageFont
-from PIL.Image import Image
 
-from .formatter import AbstractImageFormater
+from placeholder import Placeholder
 
 
 class AbstractGenerator(ABC):
     @abstractmethod
-    def generate(
-            self,
-            width: int,
-            height: int,
-            color: float | tuple[float, ...]) -> Image:
-        raise NotImplementedError()
-
-    @abstractmethod
-    def to_bytes(self) -> bytes:
+    def generate(self) -> Placeholder:
         raise NotImplementedError()
 
 
 class BaseGenerator(AbstractGenerator):
-    def get_size(self) -> Tuple[str, str]:
-        return self.placeholder_width, self.placeholder_height
-
     def get_message(self, width: int, height: int) -> str:
         return '{}x{}'.format(width, height)
 
@@ -38,26 +25,26 @@ class BaseGenerator(AbstractGenerator):
 
 
 class PlaceholderGenerator(BaseGenerator):
-    def __init__(self, formatter: AbstractImageFormater):
-        self.formatter: AbstractImageFormater = formatter
-        self.image: ImageT
+    def __init__(self):
+        self.placeholder: Placeholder | None
 
-    def generate(
-            self, width: int,
-            height: int,
-            color: float | tuple[float, ...] = 'gray'):
-        message = self.get_message(width, height)
-
-        self.image = ImageT.new(
-            mode='RGB', size=[width, height], color=color)
-
+    def set_text(self, message_callback: Callable[[Placeholder], str]) -> Self:
+        message = message_callback(self.placeholder)
         font = ImageFont.load_default(size=36)
         text_size = font.getbbox(message)
         text_position = self.calculate_to_center(
-            (text_size[2], text_size[3]), (width, height))
-        pencil = ImageDraw.Draw(self.image)
+            (text_size[2], text_size[3]), (self.placeholder.width,
+                                           self.placeholder.height))
+        pencil = ImageDraw.Draw(self.placeholder.image)
         pencil.text(text_position, font=font, fill='black',
                     size=36, text=message, align='center')
 
-    def to_bytes(self) -> bytes:
-        return self.formatter.to_bytes(self.image)
+        return self
+
+    def init(self, size: Tuple[int, int],
+             color: float | Tuple[float, ...] = 'gray') -> Self:
+        self.placeholder = Placeholder(size, color)
+        return self
+
+    def generate(self) -> Placeholder:
+        return self.placeholder

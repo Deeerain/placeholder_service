@@ -5,7 +5,7 @@ from flask import make_response
 
 import markdown
 
-from placeholder.generator import PlaceholderGenerator
+from placeholder.generator import PlaceholderGenerator as pg
 from placeholder.formatter import get_default_formatter_factory
 
 
@@ -18,15 +18,17 @@ def get_placeholder(w: int, h: int, e: str) -> Response:
     try:
         formatter = get_default_formatter_factory().build_by_name(e)
 
-        placeholder = PlaceholderGenerator(formatter)
-        placeholder.generate(w, h, 'gray')
-        raw_image = placeholder.to_bytes()
+        placeholder = pg().init((w, h)).set_text(
+            lambda p: "{}x{}".format(p.width, p.height)).generate()
+        raw_image = formatter.to_bytes(placeholder)
 
-        response = make_response(raw_image)
-        response.headers['Content-Type'] = f'image/{e}'
-        response.headers['Content-Length'] = len(raw_image)
-
-        return response
+        return Response(
+            raw_image,
+            status=200,
+            headers={
+                'Content-Length': len(raw_image),
+                'Content-Type': f'image/{e}'
+            })
     except KeyError as e:
         errmsg = "Formant %s not found" % e
         logger.error(errmsg)
