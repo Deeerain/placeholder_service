@@ -1,25 +1,48 @@
 from flask import Flask
-from flask import Response
+from flask import Response, render_template_string
+from flask.logging import logging
 from flask import make_response
+import markdown
 
-from generator import Placeholder
+from placeholder.generator import PlaceholderGenerator as pg
+from placeholder.formatter import get_default_formatter_factory
+
 
 app = Flask(__name__)
+logger = logging.getLogger(__name__)
 
 
-@app.route('/<w>x<h>.<e>')
+@app.route('/<int:w>x<int:h>.<e>')
 def get_placeholder(w: int, h: int, e: str) -> Response:
+    try:
+        formatter = get_default_formatter_factory().build_by_name(e)
 
-    placeholder = Placeholder(int(w), int(h), e)
+        placeholder = pg().init((w, h)).set_text(
+            lambda p: "{}x{}".format(p.width, p.height)).generate()
+        raw_image = formatter.to_bytes(placeholder)
 
-    response = make_response(placeholder.to_bytes())
-    response.headers['Content-Type'] = f'image/{e}'
-    response.headers['Content-Length'] = len(placeholder.to_bytes())
-
-    return response
+        return Response(
+            raw_image,
+            status=200,
+            headers={
+                'Content-Length': len(raw_image),
+                'Content-Type': f'image/{e}'
+            })
+    except KeyError as e:
+        errmsg = "Formant %s not found" % e
+        logger.error(errmsg)
+        return Response(errmsg, status=400)
+    except ValueError as e:
+        errmsg = "Formant %s not valid format" % e
+        return Response(errmsg, status=400)
 
 
 @app.route('/')
 def index() -> Response:
-    response = make_response("Hello from Placeholder Service!")
-    return response
+    try:
+        with open('./README.md', mode='r') as file:
+            md_html = markdown.markdown(file.read())
+            response = make_response(render_template_string(md_html))
+            return response
+    except FileExistsError:
+        return Response("Hello from placeholder_service")
