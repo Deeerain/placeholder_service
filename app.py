@@ -2,7 +2,6 @@ from flask import Flask
 from flask import Response, render_template_string
 from flask.logging import logging
 from flask import make_response
-
 import markdown
 
 from placeholder.generator import PlaceholderGenerator as pg
@@ -33,11 +32,17 @@ def get_placeholder(w: int, h: int, e: str) -> Response:
         errmsg = "Formant %s not found" % e
         logger.error(errmsg)
         return Response(errmsg, status=400)
+    except ValueError as e:
+        errmsg = "Formant %s not valid format" % e
+        return Response(errmsg, status=400)
 
 
 @app.route('/')
 def index() -> Response:
-    with open('./README.md', mode='r') as file:
-        md_html = markdown.markdown(file.read())
-        response = make_response(render_template_string(md_html))
-        return response
+    try:
+        with open('./README.md', mode='r') as file:
+            md_html = markdown.markdown(file.read())
+            response = make_response(render_template_string(md_html))
+            return response
+    except FileExistsError:
+        return Response("Hello from placeholder_service")
